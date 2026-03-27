@@ -76,30 +76,84 @@
  */
 export class DabbaService {
   constructor(serviceName, area) {
-    // Your code here
+      this.serviceName = serviceName
+      this.area = area
+      this.customers = []
+      this._nextId = 1 
   }
 
   addCustomer(name, address, mealPreference) {
-    // Your code here
+     if (!["veg", "nonveg", "jain"].includes(mealPreference)) return null;
+
+      const exists = this.customers.some(c=>c.name===name) 
+      if(exists) return null
+
+      let customer = {
+        id: this._nextId++,
+        name,
+        address,
+        mealPreference,
+        active:true,
+        delivered:false
+      }
+      this.customers.push(customer)
+
+      return customer
   }
 
   removeCustomer(name) {
-    // Your code here
+      let customer = this.customers.find(c=>c.name===name)
+      if(!customer || !customer.active) return false
+      customer.active = false
+      return true
   }
 
   createDeliveryBatch() {
-    // Your code here
+    let active = this.customers.filter(c=>c.active)
+      if(active.length===0) return []
+
+      active.forEach(c=>c.delivered= false)
+
+      return active.map(c=>({
+        customerId:c.id,
+        name:c.name,
+        address:c.address,
+        mealPreference:c.mealPreference,
+       batchTime: new Date().toISOString()
+      }))
   }
 
   markDelivered(customerId) {
-    // Your code here
+
+    const customer = this.customers.find(c=>c.id===customerId && c.active)
+    if(!customer) return false
+
+    customer.delivered = true
+    return true
   }
 
   getDailyReport() {
-    // Your code here
+    let active = this.customers.filter(c=>c.active)
+    let totalCustomers = active.length
+    let delivered = active.filter(c=>c.delivered).length
+    let pending = active.filter(c=>!c.delivered).length
+
+    let mealBreakdown = {
+      veg: 0,
+      nonveg: 0,
+      jain: 0
+    }
+    active.forEach(c=>{
+      mealBreakdown[c.mealPreference]++
+    })
+
+    return {totalCustomers,delivered,pending,mealBreakdown}
   }
 
   getCustomer(name) {
-    // Your code here
+    
+    let customer = this.customers.find(c=>c.name===name)
+    return customer || null
+    
   }
 }
